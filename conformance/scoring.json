@@ -1,0 +1,2871 @@
+{
+  "description": "Conformance fixtures for the flakiness score. Every implementation (flake-core in Java, action/ in TypeScript) must reproduce 'expected' for each case within 1e-6. See docs/scoring.md for the formulas.",
+  "z": 1.96,
+  "weights": {
+    "rerunRecovery": 0.5,
+    "flipRate": 0.3,
+    "entropy": 0.2
+  },
+  "cases": [
+    {
+      "name": "always passes",
+      "runs": [
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T11:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T11:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c2",
+          "build": "b-c2-2026-09-02T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-02T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c3",
+          "build": "b-c3-2026-09-03T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-03T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "mac"
+        }
+      ],
+      "expected": {
+        "runs": 4,
+        "failures": 0,
+        "flipPairs": 1,
+        "flips": 0,
+        "flipRate": 0.0,
+        "flipRateLower": 0.0,
+        "flipRateUpper": 0.7934567085261071,
+        "recoveredFailures": 0,
+        "rerunRecoveryRate": 0.0,
+        "rerunRecoveryLower": 0.0,
+        "distinctMessages": 0,
+        "entropy": 0.0,
+        "entropyComponent": 0.0,
+        "runnerCorrelation": 0.0,
+        "hourCorrelation": 0.0,
+        "score": 0.0
+      }
+    },
+    {
+      "name": "always fails with the same message",
+      "runs": [
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m1",
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m1",
+          "runner": "linux"
+        },
+        {
+          "commit": "c2",
+          "build": "b-c2-2026-09-02T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-02T10:00:00Z",
+          "outcome": "ERROR",
+          "hash": "m1",
+          "runner": "linux"
+        },
+        {
+          "commit": "c3",
+          "build": "b-c3-2026-09-03T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-03T10:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m1",
+          "runner": "linux"
+        }
+      ],
+      "expected": {
+        "runs": 4,
+        "failures": 4,
+        "flipPairs": 1,
+        "flips": 0,
+        "flipRate": 0.0,
+        "flipRateLower": 0.0,
+        "flipRateUpper": 0.7934567085261071,
+        "recoveredFailures": 0,
+        "rerunRecoveryRate": 0.0,
+        "rerunRecoveryLower": 0.0,
+        "distinctMessages": 1,
+        "entropy": -0.0,
+        "entropyComponent": -0.0,
+        "runnerCorrelation": 0.0,
+        "hourCorrelation": 0.0,
+        "score": 0.0
+      }
+    },
+    {
+      "name": "one surefire rerun that recovers",
+      "runs": [
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m1",
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        }
+      ],
+      "expected": {
+        "runs": 2,
+        "failures": 1,
+        "flipPairs": 1,
+        "flips": 1,
+        "flipRate": 1.0,
+        "flipRateLower": 0.20654329147389294,
+        "flipRateUpper": 1.0,
+        "recoveredFailures": 1,
+        "rerunRecoveryRate": 1.0,
+        "rerunRecoveryLower": 0.20654329147389294,
+        "distinctMessages": 1,
+        "entropy": 0.0,
+        "entropyComponent": 0.0,
+        "runnerCorrelation": 0.0,
+        "hourCorrelation": 0.0,
+        "score": 0.16523463317911435
+      }
+    },
+    {
+      "name": "re-run of the whole build recovers",
+      "runs": [
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "ERROR",
+          "hash": "m1",
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T12:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-01T12:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        }
+      ],
+      "expected": {
+        "runs": 2,
+        "failures": 1,
+        "flipPairs": 1,
+        "flips": 1,
+        "flipRate": 1.0,
+        "flipRateLower": 0.20654329147389294,
+        "flipRateUpper": 1.0,
+        "recoveredFailures": 1,
+        "rerunRecoveryRate": 1.0,
+        "rerunRecoveryLower": 0.20654329147389294,
+        "distinctMessages": 1,
+        "entropy": 0.0,
+        "entropyComponent": 0.0,
+        "runnerCorrelation": 0.0,
+        "hourCorrelation": 1.0,
+        "score": 0.16523463317911435
+      }
+    },
+    {
+      "name": "different messages but never recovers",
+      "runs": [
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m1",
+          "runner": "linux"
+        },
+        {
+          "commit": "c2",
+          "build": "b-c2-2026-09-02T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-02T10:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c3",
+          "build": "b-c3-2026-09-03T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-03T10:00:00Z",
+          "outcome": "ERROR",
+          "hash": "m3",
+          "runner": "linux"
+        },
+        {
+          "commit": "c4",
+          "build": "b-c4-2026-09-04T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-04T10:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m1",
+          "runner": "linux"
+        }
+      ],
+      "expected": {
+        "runs": 4,
+        "failures": 4,
+        "flipPairs": 0,
+        "flips": 0,
+        "flipRate": 0.0,
+        "flipRateLower": 0.0,
+        "flipRateUpper": 0.0,
+        "recoveredFailures": 0,
+        "rerunRecoveryRate": 0.0,
+        "rerunRecoveryLower": 0.0,
+        "distinctMessages": 3,
+        "entropy": 0.75,
+        "entropyComponent": 0.5625,
+        "runnerCorrelation": 0.0,
+        "hourCorrelation": 0.0,
+        "score": 0.1125
+      }
+    },
+    {
+      "name": "skipped runs are ignored",
+      "runs": [
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "SKIPPED",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m1",
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 2,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "SKIPPED",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 3,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        }
+      ],
+      "expected": {
+        "runs": 2,
+        "failures": 1,
+        "flipPairs": 1,
+        "flips": 1,
+        "flipRate": 1.0,
+        "flipRateLower": 0.20654329147389294,
+        "flipRateUpper": 1.0,
+        "recoveredFailures": 1,
+        "rerunRecoveryRate": 1.0,
+        "rerunRecoveryLower": 0.20654329147389294,
+        "distinctMessages": 1,
+        "entropy": 0.0,
+        "entropyComponent": 0.0,
+        "runnerCorrelation": 0.0,
+        "hourCorrelation": 0.0,
+        "score": 0.16523463317911435
+      }
+    },
+    {
+      "name": "chronological order is by timestamp, attempt, rerun",
+      "runs": [
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m1",
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T09:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T09:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        }
+      ],
+      "expected": {
+        "runs": 4,
+        "failures": 1,
+        "flipPairs": 3,
+        "flips": 2,
+        "flipRate": 0.6666666666666666,
+        "flipRateLower": 0.20765495512648788,
+        "flipRateUpper": 0.9385096847238393,
+        "recoveredFailures": 1,
+        "rerunRecoveryRate": 1.0,
+        "rerunRecoveryLower": 0.20654329147389294,
+        "distinctMessages": 1,
+        "entropy": 0.0,
+        "entropyComponent": 0.0,
+        "runnerCorrelation": 0.0,
+        "hourCorrelation": 0.0,
+        "score": 0.16556813227489284
+      }
+    },
+    {
+      "name": "textbook flaky test with runner and hour skew",
+      "runs": [
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T14:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c2",
+          "build": "b-c2-2026-09-02T02:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-02T02:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c2",
+          "build": "b-c2-2026-09-02T02:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-02T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c3",
+          "build": "b-c3-2026-09-03T14:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-03T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "mac"
+        },
+        {
+          "commit": "c4",
+          "build": "b-c4-2026-09-04T02:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-04T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c5",
+          "build": "b-c5-2026-09-05T14:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-05T14:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c5",
+          "build": "b-c5-2026-09-05T14:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-05T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c6",
+          "build": "b-c6-2026-09-06T02:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-06T02:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m0",
+          "runner": "mac"
+        },
+        {
+          "commit": "c6",
+          "build": "b-c6-2026-09-06T02:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-06T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "mac"
+        },
+        {
+          "commit": "c7",
+          "build": "b-c7-2026-09-07T14:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-07T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c8",
+          "build": "b-c8-2026-09-08T02:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-08T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c9",
+          "build": "b-c9-2026-09-09T14:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-09T14:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m0",
+          "runner": "mac"
+        },
+        {
+          "commit": "c9",
+          "build": "b-c9-2026-09-09T14:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-09T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "mac"
+        },
+        {
+          "commit": "c10",
+          "build": "b-c10-2026-09-10T02:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-10T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c4",
+          "build": "b-c4-2026-09-04T02:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-04T02:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m9",
+          "runner": "linux"
+        },
+        {
+          "commit": "c4",
+          "build": "b-c4-2026-09-04T03:00:00Z",
+          "attempt": 3,
+          "rerun": 0,
+          "timestamp": "2026-09-04T03:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m9",
+          "runner": "linux"
+        }
+      ],
+      "expected": {
+        "runs": 16,
+        "failures": 6,
+        "flipPairs": 6,
+        "flips": 5,
+        "flipRate": 0.8333333333333334,
+        "flipRateLower": 0.4364905634363539,
+        "flipRateUpper": 0.9699474141282696,
+        "recoveredFailures": 4,
+        "rerunRecoveryRate": 0.6666666666666666,
+        "rerunRecoveryLower": 0.2999883213415286,
+        "distinctMessages": 3,
+        "entropy": 0.6131471927654584,
+        "entropyComponent": 0.5109559939712154,
+        "runnerCorrelation": 0.034815531191139566,
+        "hourCorrelation": 0.16265001215808886,
+        "score": 0.38313252849591356
+      }
+    },
+    {
+      "name": "three runs with one flip",
+      "runs": [
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m1",
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-01T10:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-01T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c2",
+          "build": "b-c2-2026-09-02T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-02T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        }
+      ],
+      "expected": {
+        "runs": 3,
+        "failures": 1,
+        "flipPairs": 1,
+        "flips": 1,
+        "flipRate": 1.0,
+        "flipRateLower": 0.20654329147389294,
+        "flipRateUpper": 1.0,
+        "recoveredFailures": 1,
+        "rerunRecoveryRate": 1.0,
+        "rerunRecoveryLower": 0.20654329147389294,
+        "distinctMessages": 1,
+        "entropy": 0.0,
+        "entropyComponent": 0.0,
+        "runnerCorrelation": 0.0,
+        "hourCorrelation": 0.0,
+        "score": 0.16523463317911435
+      }
+    },
+    {
+      "name": "long history with many flips outranks three runs with one",
+      "runs": [
+        {
+          "commit": "c0",
+          "build": "b-c0-2026-09-01T00:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T00:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m0",
+          "runner": "linux"
+        },
+        {
+          "commit": "c0",
+          "build": "b-c0-2026-09-01T00:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-01T00:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c0",
+          "build": "b-c0-2026-09-01T00:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-01T00:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m0",
+          "runner": "linux"
+        },
+        {
+          "commit": "c0",
+          "build": "b-c0-2026-09-01T00:00:00Z",
+          "attempt": 2,
+          "rerun": 1,
+          "timestamp": "2026-09-01T00:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-02T01:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-02T01:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c1",
+          "build": "b-c1-2026-09-02T01:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-02T01:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c2",
+          "build": "b-c2-2026-09-03T02:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-03T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c2",
+          "build": "b-c2-2026-09-03T02:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-03T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c3",
+          "build": "b-c3-2026-09-04T03:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-04T03:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c3",
+          "build": "b-c3-2026-09-04T03:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-04T03:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c4",
+          "build": "b-c4-2026-09-05T04:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-05T04:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c4",
+          "build": "b-c4-2026-09-05T04:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-05T04:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c5",
+          "build": "b-c5-2026-09-06T05:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-06T05:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c5",
+          "build": "b-c5-2026-09-06T05:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-06T05:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c6",
+          "build": "b-c6-2026-09-07T06:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-07T06:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c6",
+          "build": "b-c6-2026-09-07T06:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-07T06:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c7",
+          "build": "b-c7-2026-09-08T07:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-08T07:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c7",
+          "build": "b-c7-2026-09-08T07:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-08T07:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c8",
+          "build": "b-c8-2026-09-09T08:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-09T08:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c8",
+          "build": "b-c8-2026-09-09T08:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-09T08:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c9",
+          "build": "b-c9-2026-09-10T09:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-10T09:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c9",
+          "build": "b-c9-2026-09-10T09:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-10T09:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c10",
+          "build": "b-c10-2026-09-11T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-11T10:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c10",
+          "build": "b-c10-2026-09-11T10:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-11T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c10",
+          "build": "b-c10-2026-09-11T10:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-11T10:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c10",
+          "build": "b-c10-2026-09-11T10:00:00Z",
+          "attempt": 2,
+          "rerun": 1,
+          "timestamp": "2026-09-11T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c11",
+          "build": "b-c11-2026-09-12T11:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-12T11:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c11",
+          "build": "b-c11-2026-09-12T11:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-12T11:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c12",
+          "build": "b-c12-2026-09-13T12:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-13T12:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c12",
+          "build": "b-c12-2026-09-13T12:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-13T12:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c13",
+          "build": "b-c13-2026-09-14T13:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-14T13:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c13",
+          "build": "b-c13-2026-09-14T13:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-14T13:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c14",
+          "build": "b-c14-2026-09-15T14:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-15T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c14",
+          "build": "b-c14-2026-09-15T14:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-15T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c15",
+          "build": "b-c15-2026-09-16T15:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-16T15:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c15",
+          "build": "b-c15-2026-09-16T15:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-16T15:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c16",
+          "build": "b-c16-2026-09-17T16:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-17T16:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c16",
+          "build": "b-c16-2026-09-17T16:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-17T16:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c17",
+          "build": "b-c17-2026-09-18T17:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-18T17:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c17",
+          "build": "b-c17-2026-09-18T17:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-18T17:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c18",
+          "build": "b-c18-2026-09-19T18:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-19T18:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c18",
+          "build": "b-c18-2026-09-19T18:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-19T18:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c19",
+          "build": "b-c19-2026-09-20T19:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-20T19:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c19",
+          "build": "b-c19-2026-09-20T19:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-20T19:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c20",
+          "build": "b-c20-2026-09-21T20:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-21T20:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m0",
+          "runner": "linux"
+        },
+        {
+          "commit": "c20",
+          "build": "b-c20-2026-09-21T20:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-21T20:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c20",
+          "build": "b-c20-2026-09-21T20:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-21T20:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m0",
+          "runner": "linux"
+        },
+        {
+          "commit": "c20",
+          "build": "b-c20-2026-09-21T20:00:00Z",
+          "attempt": 2,
+          "rerun": 1,
+          "timestamp": "2026-09-21T20:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c21",
+          "build": "b-c21-2026-09-22T21:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-22T21:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c21",
+          "build": "b-c21-2026-09-22T21:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-22T21:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c22",
+          "build": "b-c22-2026-09-23T22:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-23T22:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c22",
+          "build": "b-c22-2026-09-23T22:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-23T22:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c23",
+          "build": "b-c23-2026-09-24T23:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-24T23:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c23",
+          "build": "b-c23-2026-09-24T23:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-24T23:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c24",
+          "build": "b-c24-2026-09-25T00:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-25T00:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c24",
+          "build": "b-c24-2026-09-25T00:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-25T00:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c25",
+          "build": "b-c25-2026-09-26T01:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-26T01:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c25",
+          "build": "b-c25-2026-09-26T01:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-26T01:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c26",
+          "build": "b-c26-2026-09-27T02:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-27T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c26",
+          "build": "b-c26-2026-09-27T02:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-27T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c27",
+          "build": "b-c27-2026-09-28T03:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-28T03:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c27",
+          "build": "b-c27-2026-09-28T03:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-28T03:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c28",
+          "build": "b-c28-2026-09-01T04:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T04:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c28",
+          "build": "b-c28-2026-09-01T04:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-01T04:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c29",
+          "build": "b-c29-2026-09-02T05:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-02T05:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c29",
+          "build": "b-c29-2026-09-02T05:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-02T05:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c30",
+          "build": "b-c30-2026-09-03T06:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-03T06:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c30",
+          "build": "b-c30-2026-09-03T06:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-03T06:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c30",
+          "build": "b-c30-2026-09-03T06:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-03T06:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c30",
+          "build": "b-c30-2026-09-03T06:00:00Z",
+          "attempt": 2,
+          "rerun": 1,
+          "timestamp": "2026-09-03T06:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c31",
+          "build": "b-c31-2026-09-04T07:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-04T07:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c31",
+          "build": "b-c31-2026-09-04T07:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-04T07:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c32",
+          "build": "b-c32-2026-09-05T08:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-05T08:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c32",
+          "build": "b-c32-2026-09-05T08:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-05T08:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c33",
+          "build": "b-c33-2026-09-06T09:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-06T09:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c33",
+          "build": "b-c33-2026-09-06T09:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-06T09:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c34",
+          "build": "b-c34-2026-09-07T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-07T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c34",
+          "build": "b-c34-2026-09-07T10:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-07T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c35",
+          "build": "b-c35-2026-09-08T11:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-08T11:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c35",
+          "build": "b-c35-2026-09-08T11:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-08T11:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c36",
+          "build": "b-c36-2026-09-09T12:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-09T12:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c36",
+          "build": "b-c36-2026-09-09T12:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-09T12:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c37",
+          "build": "b-c37-2026-09-10T13:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-10T13:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c37",
+          "build": "b-c37-2026-09-10T13:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-10T13:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c38",
+          "build": "b-c38-2026-09-11T14:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-11T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c38",
+          "build": "b-c38-2026-09-11T14:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-11T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c39",
+          "build": "b-c39-2026-09-12T15:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-12T15:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c39",
+          "build": "b-c39-2026-09-12T15:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-12T15:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c40",
+          "build": "b-c40-2026-09-13T16:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-13T16:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m0",
+          "runner": "linux"
+        },
+        {
+          "commit": "c40",
+          "build": "b-c40-2026-09-13T16:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-13T16:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c40",
+          "build": "b-c40-2026-09-13T16:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-13T16:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m0",
+          "runner": "linux"
+        },
+        {
+          "commit": "c40",
+          "build": "b-c40-2026-09-13T16:00:00Z",
+          "attempt": 2,
+          "rerun": 1,
+          "timestamp": "2026-09-13T16:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c41",
+          "build": "b-c41-2026-09-14T17:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-14T17:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c41",
+          "build": "b-c41-2026-09-14T17:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-14T17:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c42",
+          "build": "b-c42-2026-09-15T18:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-15T18:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c42",
+          "build": "b-c42-2026-09-15T18:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-15T18:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c43",
+          "build": "b-c43-2026-09-16T19:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-16T19:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c43",
+          "build": "b-c43-2026-09-16T19:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-16T19:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c44",
+          "build": "b-c44-2026-09-17T20:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-17T20:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c44",
+          "build": "b-c44-2026-09-17T20:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-17T20:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c45",
+          "build": "b-c45-2026-09-18T21:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-18T21:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c45",
+          "build": "b-c45-2026-09-18T21:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-18T21:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c46",
+          "build": "b-c46-2026-09-19T22:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-19T22:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c46",
+          "build": "b-c46-2026-09-19T22:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-19T22:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c47",
+          "build": "b-c47-2026-09-20T23:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-20T23:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c47",
+          "build": "b-c47-2026-09-20T23:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-20T23:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c48",
+          "build": "b-c48-2026-09-21T00:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-21T00:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c48",
+          "build": "b-c48-2026-09-21T00:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-21T00:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c49",
+          "build": "b-c49-2026-09-22T01:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-22T01:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c49",
+          "build": "b-c49-2026-09-22T01:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-22T01:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c50",
+          "build": "b-c50-2026-09-23T02:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-23T02:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c50",
+          "build": "b-c50-2026-09-23T02:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-23T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c50",
+          "build": "b-c50-2026-09-23T02:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-23T02:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c50",
+          "build": "b-c50-2026-09-23T02:00:00Z",
+          "attempt": 2,
+          "rerun": 1,
+          "timestamp": "2026-09-23T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c51",
+          "build": "b-c51-2026-09-24T03:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-24T03:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c51",
+          "build": "b-c51-2026-09-24T03:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-24T03:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c52",
+          "build": "b-c52-2026-09-25T04:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-25T04:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c52",
+          "build": "b-c52-2026-09-25T04:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-25T04:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c53",
+          "build": "b-c53-2026-09-26T05:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-26T05:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c53",
+          "build": "b-c53-2026-09-26T05:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-26T05:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c54",
+          "build": "b-c54-2026-09-27T06:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-27T06:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c54",
+          "build": "b-c54-2026-09-27T06:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-27T06:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c55",
+          "build": "b-c55-2026-09-28T07:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-28T07:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c55",
+          "build": "b-c55-2026-09-28T07:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-28T07:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c56",
+          "build": "b-c56-2026-09-01T08:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T08:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c56",
+          "build": "b-c56-2026-09-01T08:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-01T08:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c57",
+          "build": "b-c57-2026-09-02T09:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-02T09:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c57",
+          "build": "b-c57-2026-09-02T09:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-02T09:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c58",
+          "build": "b-c58-2026-09-03T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-03T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c58",
+          "build": "b-c58-2026-09-03T10:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-03T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c59",
+          "build": "b-c59-2026-09-04T11:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-04T11:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c59",
+          "build": "b-c59-2026-09-04T11:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-04T11:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c60",
+          "build": "b-c60-2026-09-05T12:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-05T12:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m0",
+          "runner": "linux"
+        },
+        {
+          "commit": "c60",
+          "build": "b-c60-2026-09-05T12:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-05T12:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c60",
+          "build": "b-c60-2026-09-05T12:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-05T12:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m0",
+          "runner": "linux"
+        },
+        {
+          "commit": "c60",
+          "build": "b-c60-2026-09-05T12:00:00Z",
+          "attempt": 2,
+          "rerun": 1,
+          "timestamp": "2026-09-05T12:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c61",
+          "build": "b-c61-2026-09-06T13:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-06T13:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c61",
+          "build": "b-c61-2026-09-06T13:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-06T13:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c62",
+          "build": "b-c62-2026-09-07T14:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-07T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c62",
+          "build": "b-c62-2026-09-07T14:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-07T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c63",
+          "build": "b-c63-2026-09-08T15:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-08T15:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c63",
+          "build": "b-c63-2026-09-08T15:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-08T15:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c64",
+          "build": "b-c64-2026-09-09T16:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-09T16:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c64",
+          "build": "b-c64-2026-09-09T16:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-09T16:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c65",
+          "build": "b-c65-2026-09-10T17:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-10T17:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c65",
+          "build": "b-c65-2026-09-10T17:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-10T17:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c66",
+          "build": "b-c66-2026-09-11T18:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-11T18:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c66",
+          "build": "b-c66-2026-09-11T18:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-11T18:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c67",
+          "build": "b-c67-2026-09-12T19:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-12T19:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c67",
+          "build": "b-c67-2026-09-12T19:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-12T19:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c68",
+          "build": "b-c68-2026-09-13T20:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-13T20:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c68",
+          "build": "b-c68-2026-09-13T20:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-13T20:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c69",
+          "build": "b-c69-2026-09-14T21:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-14T21:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c69",
+          "build": "b-c69-2026-09-14T21:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-14T21:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c70",
+          "build": "b-c70-2026-09-15T22:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-15T22:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c70",
+          "build": "b-c70-2026-09-15T22:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-15T22:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c70",
+          "build": "b-c70-2026-09-15T22:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-15T22:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c70",
+          "build": "b-c70-2026-09-15T22:00:00Z",
+          "attempt": 2,
+          "rerun": 1,
+          "timestamp": "2026-09-15T22:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c71",
+          "build": "b-c71-2026-09-16T23:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-16T23:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c71",
+          "build": "b-c71-2026-09-16T23:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-16T23:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c72",
+          "build": "b-c72-2026-09-17T00:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-17T00:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c72",
+          "build": "b-c72-2026-09-17T00:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-17T00:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c73",
+          "build": "b-c73-2026-09-18T01:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-18T01:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c73",
+          "build": "b-c73-2026-09-18T01:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-18T01:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c74",
+          "build": "b-c74-2026-09-19T02:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-19T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c74",
+          "build": "b-c74-2026-09-19T02:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-19T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c75",
+          "build": "b-c75-2026-09-20T03:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-20T03:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c75",
+          "build": "b-c75-2026-09-20T03:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-20T03:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c76",
+          "build": "b-c76-2026-09-21T04:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-21T04:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c76",
+          "build": "b-c76-2026-09-21T04:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-21T04:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c77",
+          "build": "b-c77-2026-09-22T05:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-22T05:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c77",
+          "build": "b-c77-2026-09-22T05:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-22T05:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c78",
+          "build": "b-c78-2026-09-23T06:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-23T06:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c78",
+          "build": "b-c78-2026-09-23T06:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-23T06:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c79",
+          "build": "b-c79-2026-09-24T07:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-24T07:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c79",
+          "build": "b-c79-2026-09-24T07:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-24T07:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c80",
+          "build": "b-c80-2026-09-25T08:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-25T08:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m0",
+          "runner": "linux"
+        },
+        {
+          "commit": "c80",
+          "build": "b-c80-2026-09-25T08:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-25T08:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c80",
+          "build": "b-c80-2026-09-25T08:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-25T08:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m0",
+          "runner": "linux"
+        },
+        {
+          "commit": "c80",
+          "build": "b-c80-2026-09-25T08:00:00Z",
+          "attempt": 2,
+          "rerun": 1,
+          "timestamp": "2026-09-25T08:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c81",
+          "build": "b-c81-2026-09-26T09:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-26T09:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c81",
+          "build": "b-c81-2026-09-26T09:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-26T09:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c82",
+          "build": "b-c82-2026-09-27T10:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-27T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c82",
+          "build": "b-c82-2026-09-27T10:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-27T10:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c83",
+          "build": "b-c83-2026-09-28T11:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-28T11:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c83",
+          "build": "b-c83-2026-09-28T11:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-28T11:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c84",
+          "build": "b-c84-2026-09-01T12:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-01T12:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c84",
+          "build": "b-c84-2026-09-01T12:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-01T12:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c85",
+          "build": "b-c85-2026-09-02T13:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-02T13:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c85",
+          "build": "b-c85-2026-09-02T13:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-02T13:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c86",
+          "build": "b-c86-2026-09-03T14:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-03T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c86",
+          "build": "b-c86-2026-09-03T14:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-03T14:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c87",
+          "build": "b-c87-2026-09-04T15:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-04T15:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c87",
+          "build": "b-c87-2026-09-04T15:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-04T15:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c88",
+          "build": "b-c88-2026-09-05T16:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-05T16:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c88",
+          "build": "b-c88-2026-09-05T16:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-05T16:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c89",
+          "build": "b-c89-2026-09-06T17:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-06T17:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c89",
+          "build": "b-c89-2026-09-06T17:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-06T17:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c90",
+          "build": "b-c90-2026-09-07T18:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-07T18:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c90",
+          "build": "b-c90-2026-09-07T18:00:00Z",
+          "attempt": 1,
+          "rerun": 1,
+          "timestamp": "2026-09-07T18:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c90",
+          "build": "b-c90-2026-09-07T18:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-07T18:00:00Z",
+          "outcome": "FAIL",
+          "hash": "m2",
+          "runner": "linux"
+        },
+        {
+          "commit": "c90",
+          "build": "b-c90-2026-09-07T18:00:00Z",
+          "attempt": 2,
+          "rerun": 1,
+          "timestamp": "2026-09-07T18:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c91",
+          "build": "b-c91-2026-09-08T19:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-08T19:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c91",
+          "build": "b-c91-2026-09-08T19:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-08T19:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c92",
+          "build": "b-c92-2026-09-09T20:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-09T20:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c92",
+          "build": "b-c92-2026-09-09T20:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-09T20:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c93",
+          "build": "b-c93-2026-09-10T21:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-10T21:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c93",
+          "build": "b-c93-2026-09-10T21:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-10T21:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c94",
+          "build": "b-c94-2026-09-11T22:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-11T22:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c94",
+          "build": "b-c94-2026-09-11T22:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-11T22:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c95",
+          "build": "b-c95-2026-09-12T23:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-12T23:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c95",
+          "build": "b-c95-2026-09-12T23:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-12T23:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c96",
+          "build": "b-c96-2026-09-13T00:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-13T00:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c96",
+          "build": "b-c96-2026-09-13T00:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-13T00:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c97",
+          "build": "b-c97-2026-09-14T01:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-14T01:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c97",
+          "build": "b-c97-2026-09-14T01:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-14T01:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c98",
+          "build": "b-c98-2026-09-15T02:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-15T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c98",
+          "build": "b-c98-2026-09-15T02:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-15T02:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c99",
+          "build": "b-c99-2026-09-16T03:00:00Z",
+          "attempt": 1,
+          "rerun": 0,
+          "timestamp": "2026-09-16T03:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        },
+        {
+          "commit": "c99",
+          "build": "b-c99-2026-09-16T03:00:00Z",
+          "attempt": 2,
+          "rerun": 0,
+          "timestamp": "2026-09-16T03:00:00Z",
+          "outcome": "PASS",
+          "hash": null,
+          "runner": "linux"
+        }
+      ],
+      "expected": {
+        "runs": 220,
+        "failures": 20,
+        "flipPairs": 120,
+        "flips": 30,
+        "flipRate": 0.25,
+        "flipRateLower": 0.1810971138452223,
+        "flipRateUpper": 0.3344130216827425,
+        "recoveredFailures": 20,
+        "rerunRecoveryRate": 1.0,
+        "rerunRecoveryLower": 0.8388698745050667,
+        "distinctMessages": 2,
+        "entropy": 0.23137821315975915,
+        "entropyComponent": 0.2198093025017712,
+        "runnerCorrelation": 0.0,
+        "hourCorrelation": 0.07921180343813392,
+        "score": 0.5177259319064543
+      }
+    }
+  ]
+}

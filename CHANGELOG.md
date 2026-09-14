@@ -7,6 +7,10 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- `FlakinessScorer`: rerun-recovery rate, flip rate and failure-message entropy combined into a
+  0-1 score with Wilson intervals and an `explain()`; runner and hour-of-day correlations
+  (Cramér's V) reported alongside. Formulas in `docs/scoring.md`, fixtures in
+  `conformance/scoring.json`. The `flake score` command with Markdown and JSON output.
 - `SqliteRunStore` (`.flake/history.db`, numbered SQL migrations applied on open, idempotent
   inserts), `RunSource` with `LocalDirectorySource`, and the `flake ingest <dir>` command with
   build identity taken from options, the GitHub Actions environment or git.

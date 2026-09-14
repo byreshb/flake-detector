@@ -59,6 +59,15 @@ Schema changes are numbered SQL scripts under `store/migrations/` in the jar. `M
 every script newer than `PRAGMA user_version` inside a transaction and then bumps the version, so
 an old `history.db` restored from a CI cache is upgraded on open and never rewritten by hand.
 
+## Scoring
+
+`FlakinessScorer` is pure: it takes a test id and a list of runs and returns a `FlakeScore` record
+holding every intermediate number (counts, rates, Wilson intervals, entropy, correlations) so that
+reports and explanations never recompute anything. `Wilson` and `CramersV` are small, separately
+tested value types. The formulas are documented in [scoring.md](scoring.md) and pinned by
+`conformance/scoring.json`, which was generated from an independent reference implementation and
+is the contract the TypeScript scorer in the GitHub Action must also satisfy.
+
 ## Where a build's identity comes from
 
 Report files carry no commit, branch or build id. `BuildContext` in the CLI resolves them, in
@@ -87,7 +96,7 @@ One commit and one green CI run per step; v1.0.0 after step 6.
 1. Parent pom and modules, workflows, README problem statement. **Done.**
 2. Model and `JUnitXmlParser` with fixtures covering Surefire 3 reruns. **Done.**
 3. `SqliteRunStore` with migrations and `LocalDirectorySource`; `flake ingest <dir>`. **Done.**
-4. `FlakinessScorer` with `docs/scoring.md`; `flake score`.
+4. `FlakinessScorer` with `docs/scoring.md`; `flake score`. **Done.**
 5. `QuarantineLedger`, `flake quarantine` and `flake gate`.
 6. Markdown and HTML report. Release v1.0.0.
 7. `flake-github` ingest from Actions artifacts.

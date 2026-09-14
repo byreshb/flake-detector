@@ -91,6 +91,32 @@ flake ingest build/reports --glob '*.xml' --commit 9fceb02 --branch main --build
 Ingesting the same reports twice does nothing: a run is identified by test, build, attempt and
 rerun index.
 
+Then rank the tests:
+
+```bash
+flake score --top 20 --format md
+```
+
+```
+| # | Test | Score | Runs | Failures | Recovered | Flips | Messages |
+|--:|------|------:|-----:|---------:|----------:|------:|---------:|
+| 1 | `com.acme.CheckoutTest#appliesCoupon` | 0.383 | 16 | 6 | 4 | 5/6 | 3 |
+| 2 | `com.acme.CheckoutTest#loadsInventory` | 0.112 | 4 | 4 | 0 | 0/0 | 3 |
+
+com.acme.CheckoutTest#appliesCoupon: score 0.383 over 16 run(s)
+  rerun recovery   0.300 x 0.5 = 0.150  (4 of 6 failure(s) passed on a retry of the same commit; rate 0.67, 95% interval [0.30, 0.90])
+  flip rate        0.436 x 0.3 = 0.131  (5 of 6 consecutive same-commit pair(s) changed outcome; rate 0.83, 95% interval [0.44, 0.97])
+  message entropy  0.511 x 0.2 = 0.102  (3 distinct message(s) over 6 failure(s); entropy 0.61, shrunk to 0.51)
+  reported only:   runner correlation 0.03, hour-of-day correlation 0.16
+```
+
+The score is a weighted sum of three signals, each measured only between runs of the **same
+commit** so that real fixes and regressions do not count: failures that passed on a retry (weight
+0.5), consecutive runs that changed outcome (0.3), and how many different failure messages the
+test produces (0.2). Rates enter the score as the lower bound of a 95% Wilson interval, so one
+lucky rerun does not outrank three hundred. A test that always fails scores 0: that is a bug, not
+flakiness. Every formula, with a worked example, is in [docs/scoring.md](docs/scoring.md).
+
 The shape of the rest of the tool as the plan lands:
 
 ```bash
@@ -105,9 +131,15 @@ flake gate --reports target/surefire-reports
 | Command                    | What it does                                                         |
 |----------------------------|----------------------------------------------------------------------|
 | `flake ingest <dir>`       | Read `TEST-*.xml` under `<dir>` (recursively) into the run history.  |
+| `flake score`              | Rank tests by flakiness: `--top N` (20; 0 for all), `--format md|json`, `--explain N` (3). |
 
 Options shared by every command: `--db FILE` (default `.flake/history.db`). Options of `ingest`:
 `--glob`, `--commit`, `--branch`, `--runner`, `--build-id`, `--attempt`.
+
+`--format json` prints an array with one object per test holding every component: `test`,
+`score`, `runs`, `failures`, `flipPairs`, `flips`, `flipRate`, `flipRateLower`, `flipRateUpper`,
+`recoveredFailures`, `rerunRecoveryRate`, `rerunRecoveryLower`, `distinctMessages`, `entropy`,
+`entropyComponent`, `runnerCorrelation`, `hourCorrelation`.
 
 ## Reference
 
@@ -151,6 +183,26 @@ try (RunStore store = SqliteRunStore.open(SqliteRunStore.DEFAULT_PATH)) {
   }
 }
 ```
+
+### Scoring
+
+`FlakinessScorer` turns a test's runs into a `FlakeScore`; `scoreAll(store)` scores every test in
+ranking order. `explain()` lists each component with its value, weight and contribution.
+
+```java
+FlakinessScorer scorer = new FlakinessScorer();
+try (RunStore store = SqliteRunStore.open(SqliteRunStore.DEFAULT_PATH)) {
+  for (FlakeScore score : scorer.scoreAll(store)) {
+    if (score.score() > 0.3) {
+      System.out.print(score.explain());
+    }
+  }
+}
+```
+
+The formulas are fixed by [`conformance/scoring.json`](conformance/scoring.json), a set of run
+histories with their expected components; the Java scorer is tested against it and the TypeScript
+scorer in the GitHub Action will be too.
 
 Failure messages are never stored as text. Each failed execution carries a 64-bit hash of the
 message after normalisation (exception type prefixed, whitespace collapsed, every run of digits
