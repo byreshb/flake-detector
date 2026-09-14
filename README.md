@@ -82,6 +82,36 @@ flake quarantine add com.acme.CheckoutTest#appliesCoupon --reason "timing on CI"
 flake gate --reports target/surefire-reports
 ```
 
+## Reference
+
+### Reading Surefire and Failsafe reports
+
+`JUnitXmlParser` in `flake-core` reads one report file into a list of `TestCaseResult`, one per
+`testcase` element. Each result holds the test id, the reported time and the list of executions
+in the order they happened, so Surefire 3 reruns (`-Dsurefire.rerunFailingTestsCount=2`) are
+preserved rather than collapsed into a single pass or fail:
+
+| Elements under `testcase`                    | Executions produced                     |
+|----------------------------------------------|-----------------------------------------|
+| none (or only `system-out` / `system-err`)   | PASS                                    |
+| `skipped`                                    | SKIPPED                                 |
+| `failure` or `error`, plus N `rerunFailure` / `rerunError` | FAIL/ERROR, then N more FAIL/ERROR |
+| N `flakyFailure` / `flakyError`              | N FAIL/ERROR, then PASS                 |
+
+```java
+JUnitXmlParser parser = new JUnitXmlParser();
+BuildRun build = new BuildRun("run-42", "9fceb02", 1, Instant.now());
+for (TestCaseResult result : parser.parse(Path.of("target/surefire-reports/TEST-CheckoutTest.xml"))) {
+  List<TestRun> runs = result.toRuns(build, "main", "ubuntu-latest");
+  System.out.println(result.testId() + " " + result.last().outcome() + " after " + runs.size() + " execution(s)");
+}
+```
+
+Failure messages are never stored as text. Each failed execution carries a 64-bit hash of the
+message after normalisation (exception type prefixed, whitespace collapsed, every run of digits
+replaced by `#`), which is enough to tell "the same assertion keeps failing" from "it fails
+differently every time" without keeping possibly sensitive output.
+
 ## Modules
 
 | Module         | What it holds                                                                         |

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="com.acme.OuterTest" tests="1">
+    <testcase name="outer" time="0,5"/>
+    <testsuite name="com.acme.InnerTest" tests="1">
+      <testcase name="inner" classname="com.acme.InnerTest">
+        <failure>java.lang.AssertionError: boom
+	at com.acme.InnerTest.inner(InnerTest.java:9)
+</failure>
+      </testcase>
+    </testsuite>
+  </testsuite>
+</testsuites>

@@ -7,6 +7,9 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- Run model (`TestId`, `BuildRun`, `TestRun`, `Outcome`) and `JUnitXmlParser` for Surefire and
+  Failsafe reports, including Surefire 3 rerun elements (`flakyFailure`, `rerunFailure` and the
+  error variants) which become one run per execution.
 - Multi-module Maven build (`flake-core`, `flake-github`, `flake-junit`, `flake-cli`) with
   automatic formatting (Spotless, google-java-format), JaCoCo coverage gate at 85%, GitHub
   Actions CI and release workflows.

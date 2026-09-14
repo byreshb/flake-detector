@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.acme.SearchTest" time="0.5" tests="3" errors="0" skipped="0" failures="0">
+  <testcase name="findsByName(String)[1]" classname="com.acme.SearchTest" time="0.2"/>
+  <testcase name="findsByName(String)[2]" classname="com.acme.SearchTest" time="0.2"/>
+  <testcase name="findsNothing" classname="com.acme.SearchTest" time="0.1">
+    <system-out>nothing</system-out>
+    <system-err/>
+  </testcase>
+</testsuite>

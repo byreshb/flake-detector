@@ -33,6 +33,20 @@ flowchart LR
 | `quarantine` | `QuarantineLedger` reading and writing `.flake/quarantine.yaml`.                 |
 | `report`     | Markdown and single-file HTML reports.                                           |
 
+## The run model
+
+`TestRun` is one execution of one test. It points at the `BuildRun` it happened in (workflow run
+id, commit, attempt number, timestamp) and adds the branch, the runner label, a rerun index, the
+duration, the outcome and the failure message hash. The rerun index matters: when Surefire reruns
+a failing test, every execution becomes its own `TestRun` (rerun 0, 1, 2, ...) so the scorer can
+see "failed, failed, passed" on the same commit, which is the single strongest flakiness signal.
+A GitHub Actions "re-run jobs" creates a new `BuildRun` with the same id and a higher attempt, so
+the same signal is visible across attempts too.
+
+`JUnitXmlParser` deliberately produces `TestCaseResult`s, which know nothing about builds, and
+`TestCaseResult.toRuns(build, branch, runner)` does the tying. Parsing is pure and fixture-tested;
+the build context is supplied by whoever found the file (a local directory, an Actions artifact).
+
 ## Deliberate trade-offs
 
 - **No machine learning.** The signals that matter (a failure that passes on re-run of the same
@@ -51,7 +65,7 @@ flowchart LR
 One commit and one green CI run per step; v1.0.0 after step 6.
 
 1. Parent pom and modules, workflows, README problem statement. **Done.**
-2. Model and `JUnitXmlParser` with fixtures covering Surefire 3 reruns.
+2. Model and `JUnitXmlParser` with fixtures covering Surefire 3 reruns. **Done.**
 3. `SqliteRunStore` with migrations and `LocalDirectorySource`; `flake ingest <dir>`.
 4. `FlakinessScorer` with `docs/scoring.md`; `flake score`.
 5. `QuarantineLedger`, `flake quarantine` and `flake gate`.

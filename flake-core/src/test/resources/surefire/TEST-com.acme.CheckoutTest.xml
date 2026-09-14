@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0.2" name="com.acme.CheckoutTest" time="1.734" tests="5" errors="1" skipped="1" failures="1">
+  <properties>
+    <property name="java.version" value="17.0.11"/>
+  </properties>
+  <testcase name="addsItem" classname="com.acme.CheckoutTest" time="0.021"/>
+  <testcase name="appliesCoupon" classname="com.acme.CheckoutTest" time="0.412">
+    <flakyFailure message="expected: &lt;12.50&gt; but was: &lt;12.40&gt;" type="org.opentest4j.AssertionFailedError">
+      <stackTrace>org.opentest4j.AssertionFailedError: expected: &lt;12.50&gt; but was: &lt;12.40&gt;
+	at com.acme.CheckoutTest.appliesCoupon(CheckoutTest.java:42)
+</stackTrace>
+      <system-out>retrying...</system-out>
+    </flakyFailure>
+    <flakyError message="Connection refused" type="java.net.ConnectException">
+      <stackTrace>java.net.ConnectException: Connection refused
+	at com.acme.CheckoutTest.appliesCoupon(CheckoutTest.java:40)
+</stackTrace>
+    </flakyError>
+  </testcase>
+  <testcase name="rejectsExpiredCard" classname="com.acme.CheckoutTest" time="0.301">
+    <failure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;true&gt; but was: &lt;false&gt;
+	at com.acme.CheckoutTest.rejectsExpiredCard(CheckoutTest.java:61)
+</failure>
+    <rerunFailure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError">
+      <stackTrace>org.opentest4j.AssertionFailedError: expected: &lt;true&gt; but was: &lt;false&gt;
+	at com.acme.CheckoutTest.rejectsExpiredCard(CheckoutTest.java:61)
+</stackTrace>
+    </rerunFailure>
+    <rerunFailure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError">
+      <stackTrace>org.opentest4j.AssertionFailedError: expected: &lt;true&gt; but was: &lt;false&gt;
+	at com.acme.CheckoutTest.rejectsExpiredCard(CheckoutTest.java:61)
+</stackTrace>
+    </rerunFailure>
+  </testcase>
+  <testcase name="loadsInventory" classname="com.acme.CheckoutTest" time="1.000">
+    <error type="java.lang.IllegalStateException">java.lang.IllegalStateException: pool exhausted after 30000 ms
+	at com.acme.Inventory.load(Inventory.java:12)
+</error>
+    <rerunError message="pool exhausted after 30012 ms" type="java.lang.IllegalStateException">
+      <stackTrace>java.lang.IllegalStateException: pool exhausted after 30012 ms</stackTrace>
+    </rerunError>
+    <system-out><![CDATA[loading inventory
+]]></system-out>
+  </testcase>
+  <testcase name="printsReceipt" classname="com.acme.CheckoutTest" time="0">
+    <skipped message="not implemented"/>
+  </testcase>
+</testsuite>
