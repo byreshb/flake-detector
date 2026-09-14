@@ -73,7 +73,25 @@ alias flake='java -jar /path/to/flake-detector/flake-cli/target/flake-cli-1.0.0-
 
 ## Quick start
 
-The shape of the tool once every step of the plan has landed:
+Record the reports of every build into the run history. After `mvn test` (or `mvn verify` for
+Failsafe) in your project:
+
+```bash
+flake ingest target/surefire-reports
+```
+
+Run it in every CI job and cache `.flake/history.db` between runs; on GitHub Actions the commit,
+branch, run id, attempt and runner are picked up from the environment automatically. Anywhere
+else, commit and branch come from git and you can override any of them:
+
+```bash
+flake ingest build/reports --glob '*.xml' --commit 9fceb02 --branch main --build-id 4711 --attempt 2 --runner mac-mini-3
+```
+
+Ingesting the same reports twice does nothing: a run is identified by test, build, attempt and
+rerun index.
+
+The shape of the rest of the tool as the plan lands:
 
 ```bash
 flake ingest github --repo byreshb/playwright-pagefactory --workflow CI --runs 200
@@ -81,6 +99,15 @@ flake score --top 20 --format md
 flake quarantine add com.acme.CheckoutTest#appliesCoupon --reason "timing on CI" --owner byresh --expires 2026-12-01
 flake gate --reports target/surefire-reports
 ```
+
+### Command reference
+
+| Command                    | What it does                                                         |
+|----------------------------|----------------------------------------------------------------------|
+| `flake ingest <dir>`       | Read `TEST-*.xml` under `<dir>` (recursively) into the run history.  |
+
+Options shared by every command: `--db FILE` (default `.flake/history.db`). Options of `ingest`:
+`--glob`, `--commit`, `--branch`, `--runner`, `--build-id`, `--attempt`.
 
 ## Reference
 
@@ -104,6 +131,24 @@ BuildRun build = new BuildRun("run-42", "9fceb02", 1, Instant.now());
 for (TestCaseResult result : parser.parse(Path.of("target/surefire-reports/TEST-CheckoutTest.xml"))) {
   List<TestRun> runs = result.toRuns(build, "main", "ubuntu-latest");
   System.out.println(result.testId() + " " + result.last().outcome() + " after " + runs.size() + " execution(s)");
+}
+```
+
+### The run store
+
+`RunStore` is the history; `SqliteRunStore.open(path)` creates `.flake/history.db` (and its
+parent directories) and applies the numbered migration scripts bundled in the jar, so opening an
+older database upgrades it in place. `record` ignores runs that are already present, and every
+query returns runs chronologically (build start time, attempt, rerun index):
+
+```java
+try (RunStore store = SqliteRunStore.open(SqliteRunStore.DEFAULT_PATH)) {
+  RunSource source = new LocalDirectorySource(Path.of("target/surefire-reports"), build, "main", "");
+  int added = store.record(source.read());
+  for (TestId id : store.testIds()) {
+    List<TestRun> history = store.runsOf(id);
+    System.out.println(id + ": " + history.size() + " run(s), " + added + " just added");
+  }
 }
 ```
 

@@ -47,6 +47,26 @@ the same signal is visible across attempts too.
 `TestCaseResult.toRuns(build, branch, runner)` does the tying. Parsing is pure and fixture-tested;
 the build context is supplied by whoever found the file (a local directory, an Actions artifact).
 
+## The run store
+
+`RunStore` is a small interface (record, runs of a test, all runs, test ids, counts) with one
+implementation, `SqliteRunStore`. Two tables: `builds` keyed by (id, attempt) and `test_runs`
+with a unique key over (class, method, build id, attempt, rerun). Inserts use `INSERT OR IGNORE`,
+which is what makes ingestion idempotent. Timestamps are stored as epoch milliseconds so ordering
+is numeric.
+
+Schema changes are numbered SQL scripts under `store/migrations/` in the jar. `Migrations` applies
+every script newer than `PRAGMA user_version` inside a transaction and then bumps the version, so
+an old `history.db` restored from a CI cache is upgraded on open and never rewritten by hand.
+
+## Where a build's identity comes from
+
+Report files carry no commit, branch or build id. `BuildContext` in the CLI resolves them, in
+order: explicit option, GitHub Actions environment (`GITHUB_SHA`, `GITHUB_REF_NAME` or
+`GITHUB_HEAD_REF` on pull requests, `GITHUB_RUN_ID`, `GITHUB_RUN_ATTEMPT`, `RUNNER_NAME`), git in
+the working directory, and finally a default (`unknown` commit, a timestamp-based build id,
+attempt 1, empty branch and runner). Other CI systems work through the explicit options.
+
 ## Deliberate trade-offs
 
 - **No machine learning.** The signals that matter (a failure that passes on re-run of the same
@@ -66,7 +86,7 @@ One commit and one green CI run per step; v1.0.0 after step 6.
 
 1. Parent pom and modules, workflows, README problem statement. **Done.**
 2. Model and `JUnitXmlParser` with fixtures covering Surefire 3 reruns. **Done.**
-3. `SqliteRunStore` with migrations and `LocalDirectorySource`; `flake ingest <dir>`.
+3. `SqliteRunStore` with migrations and `LocalDirectorySource`; `flake ingest <dir>`. **Done.**
 4. `FlakinessScorer` with `docs/scoring.md`; `flake score`.
 5. `QuarantineLedger`, `flake quarantine` and `flake gate`.
 6. Markdown and HTML report. Release v1.0.0.
