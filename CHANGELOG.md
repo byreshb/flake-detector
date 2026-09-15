@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `flake-github`: `GitHubClient`, a minimal `java.net.http` REST client with no JSON dependency,
+  and `GitHubArtifactsSource`, which lists a workflow's runs, downloads matching artifacts and
+  feeds their reports to `JUnitXmlParser`. The `flake ingest github` command.
+
 ## [1.0.0] - 2026-09-14
 
 ### Added

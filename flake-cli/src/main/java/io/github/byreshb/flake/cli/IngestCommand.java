@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.ExitCode;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
@@ -18,11 +19,15 @@ import picocli.CommandLine.Spec;
 @Command(
     name = "ingest",
     mixinStandardHelpOptions = true,
-    description = "Read Surefire/Failsafe XML reports from a directory into the run history.")
+    description = "Read Surefire/Failsafe XML reports from a directory into the run history.",
+    subcommands = {IngestGithubCommand.class})
 public final class IngestCommand implements Callable<Integer> {
 
+  // arity 0..1, not required: a bare "flake ingest github ..." must resolve to the github
+  // subcommand below rather than being swallowed as the value of this positional parameter.
   @Parameters(
       index = "0",
+      arity = "0..1",
       paramLabel = "DIR",
       description = "Directory searched recursively for report files.")
   private Path directory;
@@ -86,6 +91,15 @@ public final class IngestCommand implements Callable<Integer> {
 
   @Override
   public Integer call() {
+    if (directory == null) {
+      spec.commandLine()
+          .getErr()
+          .println(
+              "Missing required parameter: 'DIR' (or run 'flake ingest github' to ingest from"
+                  + " GitHub Actions)");
+      spec.commandLine().usage(spec.commandLine().getErr());
+      return ExitCode.USAGE;
+    }
     BuildRun build = context.build(buildId, commit, attempt);
     LocalDirectorySource source =
         new LocalDirectorySource(

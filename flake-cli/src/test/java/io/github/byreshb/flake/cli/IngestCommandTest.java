@@ -125,7 +125,9 @@ class IngestCommandTest {
     assertThat(cli.run("--version")).isZero();
     assertThat(cli.out.toString()).contains("flake ");
     assertThat(cli.run("ingest", "--help")).isZero();
-    assertThat(cli.out.toString()).contains("--glob");
+    assertThat(cli.out.toString()).contains("--glob").contains("github");
+    assertThat(cli.run("ingest", "github", "--help")).isZero();
+    assertThat(cli.out.toString()).contains("--repo").contains("--workflow");
   }
 
   @Test

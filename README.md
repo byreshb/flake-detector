@@ -151,10 +151,23 @@ day when nothing else does. See [docs/quarantine.md](docs/quarantine.md) for the
 and policy, and [docs/ci-integration.md](docs/ci-integration.md) for a full GitHub Actions
 workflow wiring `ingest`, `gate` and `quarantine check` together.
 
+No GitHub Actions history yet? Read it straight from a workflow's artifacts instead of a local
+directory, with a token that can read the repository and its Actions artifacts:
+
+```bash
+export GITHUB_TOKEN=ghp_...
+flake ingest github --repo byreshb/playwright-pagefactory --workflow CI --runs 200
+```
+
+This reads the most recent 200 runs of the `CI` workflow, downloads every artifact whose name
+contains "surefire" or "failsafe" (override with `--artifact`), and ingests every `.xml` report
+inside. A token is required even for a public repository: GitHub's artifact-download endpoint
+always requires one. Nothing else changes; `flake score`, `flake gate` and `flake quarantine`
+work the same regardless of where the history came from.
+
 The shape of the rest of the tool as the plan lands:
 
 ```bash
-flake ingest github --repo byreshb/playwright-pagefactory --workflow CI --runs 200
 flake pr-comment
 flake issues sync
 ```
@@ -164,6 +177,7 @@ flake issues sync
 | Command                       | What it does                                                              |
 |--------------------------------|----------------------------------------------------------------------------|
 | `flake ingest <dir>`           | Read `TEST-*.xml` under `<dir>` (recursively) into the run history.        |
+| `flake ingest github`          | Read reports from a GitHub Actions workflow's artifacts: `--repo`, `--workflow` (required), `--runs` (50), `--artifact`, `--runner`. |
 | `flake score`                  | Rank tests by flakiness: `--top N` (20; 0 for all), `--format md\|html\|json`, `--explain N` (3). |
 | `flake quarantine add <test>`  | Add or replace an entry: `--reason`, `--owner`, `--expires` (required), `--added` (today), `--issue`. |
 | `flake quarantine remove <test>` | Remove an entry.                                                          |
@@ -173,7 +187,8 @@ flake issues sync
 
 Options shared by every command: `--db FILE` (default `.flake/history.db`). `quarantine` and
 `gate` also take `--ledger FILE` (default `.flake/quarantine.yaml`). Options of `ingest`:
-`--glob`, `--commit`, `--branch`, `--runner`, `--build-id`, `--attempt`.
+`--glob`, `--commit`, `--branch`, `--runner`, `--build-id`, `--attempt`. `ingest github` needs
+`GITHUB_TOKEN` in the environment; it is never accepted as a command line option.
 
 `--format json` prints an array with one object per test holding every component: `test`,
 `score`, `runs`, `failures`, `flipPairs`, `flips`, `flipRate`, `flipRateLower`, `flipRateUpper`,
@@ -279,6 +294,27 @@ ledger.add(entry).save(QuarantineLedger.DEFAULT_PATH);
 
 See [docs/quarantine.md](docs/quarantine.md) for the file format and the policy behind the
 expiry.
+
+### Reading from GitHub Actions
+
+`GitHubClient` (in `flake-github`) is a thin `java.net.http` wrapper: no JSON library, no other
+dependency. `GitHubArtifactsSource` implements the same `RunSource` interface as
+`LocalDirectorySource`, so it drops into the same pipeline:
+
+```java
+GitHubClient client = GitHubClient.create(System.getenv("GITHUB_TOKEN"));
+RunSource source = new GitHubArtifactsSource(client, "byreshb", "flake-detector", "ci.yml", 100);
+try (RunStore store = SqliteRunStore.open(SqliteRunStore.DEFAULT_PATH)) {
+  store.record(source.read());
+}
+```
+
+It lists the workflow's runs (paging until it has enough or the API runs out), downloads every
+artifact whose name matches a glob (default `*{surefire,failsafe}*`), unzips each in memory, and
+parses every `.xml` entry with the same `JUnitXmlParser` a local directory uses; entries that are
+not JUnit reports are skipped rather than failing the read. Downloading an artifact always
+requires a token: GitHub's artifact endpoint answers with a redirect to a short-lived, signed URL,
+which `GitHubClient` follows once without forwarding the token to it.
 
 Failure messages are never stored as text. Each failed execution carries a 64-bit hash of the
 message after normalisation (exception type prefixed, whitespace collapsed, every run of digits

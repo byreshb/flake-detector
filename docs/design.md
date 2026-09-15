@@ -106,6 +106,31 @@ attached to a CI run without a web server. Trend characters (`.`/`F`/`E`) and sp
 shared knowledge between the two renderers only by convention, not by a common type, which is a
 small duplication accepted for keeping each renderer simple and self-contained.
 
+## Reading from GitHub Actions
+
+`GitHubClient` is deliberately minimal: `java.net.http`, a hand-written recursive-descent JSON
+reader (`Json`, package-private, tested directly) instead of a dependency, and two operations
+(`getJsonObject` for the REST endpoints, `downloadArtifact` for the one binary download this
+project needs). It always sets `Redirect.NEVER` and follows GitHub's one redirect from the
+artifact endpoint to its signed blob URL by hand, deliberately not forwarding the bearer token to
+that second request, which is unauthenticated and would otherwise leak a live credential to
+whatever host GitHub's storage backend happens to be that day.
+
+`GitHubArtifactsSource` implements `RunSource`, the same interface `LocalDirectorySource`
+implements, so `flake-cli` treats a directory and a GitHub workflow identically once a `RunSource`
+is in hand. It owns the GitHub Actions-specific knowledge (endpoint shapes, pagination, artifact
+name matching); `GitHubClient` only knows how to authenticate and speak HTTP.
+
+### Testing an HTTP client without mocking it
+
+Every test that exercises `GitHubClient` or `GitHubArtifactsSource` runs against a real
+`com.sun.net.httpserver.HttpServer` bound to loopback (`TestHttpServer`), not a mock of the client.
+This is real HTTP end to end: real sockets, real headers, a real redirect response the client must
+follow correctly, and a real zip byte stream it must unzip and parse. It stays hermetic and fast
+without touching the network or requiring a token in CI, and it catches the class of bug (an
+Authorization header that leaks to a redirect target, a response body that fails to parse) that a
+mock of the client's own methods cannot.
+
 ## Deliberate trade-offs
 
 - **No machine learning.** The signals that matter (a failure that passes on re-run of the same
@@ -118,6 +143,10 @@ small duplication accepted for keeping each renderer simple and self-contained.
   and the history of who quarantined what, and why, is in git.
 - **Expiry is mandatory.** Every ledger entry must expire within 90 days. Expired entries fail the
   build so quarantine cannot become permanent by neglect.
+- **No JSON library.** GitHub's REST responses are read with a small hand-written parser rather
+  than a dependency, the same choice already made for writing JSON in `ScoreJson`; the surface
+  area needed (objects, arrays, strings, numbers, booleans, null) is small and worth keeping the
+  dependency count at zero.
 
 ## Delivery plan
 
@@ -129,7 +158,7 @@ One commit and one green CI run per step; v1.0.0 after step 6.
 4. `FlakinessScorer` with `docs/scoring.md`; `flake score`. **Done.**
 5. `QuarantineLedger`, `flake quarantine` and `flake gate`. **Done.**
 6. Markdown and HTML report. **Done.** Release v1.0.0.
-7. `flake-github` ingest from Actions artifacts.
+7. `flake-github` ingest from Actions artifacts. **Done.**
 8. `flake-junit` extension.
 9. PR comment and issue sync.
 10. GitHub Action (TypeScript) with conformance tests.
