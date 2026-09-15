@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-09-14
+
 ### Added
 - `Reports`, `MarkdownReport` and `HtmlReport`: a ranked table with a per-test trend, plus
   explanations of the top suspects, in Markdown or as one self-contained HTML file with the trend
@@ -29,4 +31,5 @@ All notable changes to this project are documented here. The format follows
   automatic formatting (Spotless, google-java-format), JaCoCo coverage gate at 85%, GitHub
   Actions CI and release workflows.
 
-[Unreleased]: https://github.com/byreshb/flake-detector/compare/main...HEAD
+[Unreleased]: https://github.com/byreshb/flake-detector/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/byreshb/flake-detector/releases/tag/v1.0.0

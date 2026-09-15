@@ -60,7 +60,7 @@ Then add the module you need to your own project's `pom.xml`:
 <dependency>
   <groupId>io.github.byreshb</groupId>
   <artifactId>flake-core</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 
@@ -68,7 +68,7 @@ The command line tool is a single executable jar at `flake-cli/target/flake-cli-
 Put a wrapper on your path:
 
 ```bash
-alias flake='java -jar /path/to/flake-detector/flake-cli/target/flake-cli-1.0.0-SNAPSHOT.jar'
+alias flake='java -jar /path/to/flake-detector/flake-cli/target/flake-cli-1.0.0.jar'
 ```
 
 ## Quick start
