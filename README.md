@@ -35,8 +35,13 @@ a Wilson interval, and a quarantine ledger enforced by a JUnit 5 extension and a
 ## Status
 
 Under construction; the modules and the build are in place, the features are being delivered one
-by one (see the delivery plan in [docs/design.md](docs/design.md)). Not on Maven Central yet;
-publishing there is planned, see [docs/releasing.md](docs/releasing.md).
+by one (see the delivery plan in [docs/design.md](docs/design.md), where each finished step is
+marked **Done**). As of the last update to this file: steps 1-8 are done, released as `v1.0.0`
+after step 6, currently developing `1.0.1-SNAPSHOT` toward `v1.1.0` (PR comments, issue sync, a
+TypeScript GitHub Action, and a demo run against a real repository's history remain). `git log`
+and the [Actions tab](https://github.com/byreshb/flake-detector/actions) are the source of truth
+for exactly what has landed. Not on Maven Central yet; publishing there is planned, see
+[docs/releasing.md](docs/releasing.md).
 
 ## Requirements
 
