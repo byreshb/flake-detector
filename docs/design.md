@@ -131,6 +131,46 @@ without touching the network or requiring a token in CI, and it catches the clas
 Authorization header that leaks to a redirect target, a response body that fails to parse) that a
 mock of the client's own methods cannot.
 
+## The JUnit extension
+
+`QuarantineExtension` implements four JUnit 5 extension points on one class: `BeforeAllCallback`
+(fails the class when one of its tests has an expired entry), `ExecutionCondition` (disables a
+quarantined test in skip mode), `InvocationInterceptor` (catches a quarantined test's failure in
+observe mode instead of letting it propagate), and `AfterAllCallback` (writes the class's observed
+outcomes, if any, once all its tests have run). All four read the same immutable `QuarantineLedger`
+and share one `Clock`, so a single instant of "now" is used consistently across a whole class's
+execution rather than being re-read per callback.
+
+Observed outcomes are written in exactly the JUnit XML shape `JUnitXmlParser` reads, deliberately
+reusing that format instead of inventing a second one: an observed report is ingestible with
+`flake ingest .flake/observed` exactly like a real Surefire report, with no new parsing code.
+
+The production entry point is the public no-argument constructor, used via `@ExtendWith
+(QuarantineExtension.class)`, which reads everything from system properties. Tests use a second,
+package-visible-from-tests constructor taking the ledger, mode, directory and clock directly (the
+same dependency-injection pattern already used for `BuildContext` and `IngestGithubCommand`), and
+drive real, nested `@Test` classes through the real JUnit Platform via `EngineTestKit` rather than
+mocking any part of the extension — the same "test the real thing" approach used for `flake-github`
+against a real local HTTP server.
+
+### Trade-off: only plain `@Test` methods are intercepted
+
+`InvocationInterceptor` has separate callbacks per test type (`interceptTestMethod`,
+`interceptTestTemplateMethod` for `@ParameterizedTest`/`@RepeatedTest`, `interceptDynamicTest` for
+`@TestFactory`). Only `interceptTestMethod` is implemented; a failing quarantined parameterized or
+dynamic test still fails the build in observe mode. Extending coverage to those is possible later
+without changing the ledger format or the extension's public API.
+
+### Trade-off: an expired entry fails a class regardless of mode, scoped to that class only
+
+"Fails the class with a clear message when any entry is expired" is deliberately read as *any
+entry belonging to that class*, not any entry anywhere in the ledger: a ledger with a hundred
+entries would otherwise fail every class using the extension the moment any one of them expired,
+which would be disruptive and not obviously connected to the class actually failing. `flake
+quarantine check` (see [docs/ci-integration.md](ci-integration.md)) already catches an expired
+entry ledger-wide as a separate, explicit CI step; the extension's job is to make sure the
+specific class it protects does not quietly keep passing on a stale excuse.
+
 ## Deliberate trade-offs
 
 - **No machine learning.** The signals that matter (a failure that passes on re-run of the same
@@ -159,7 +199,7 @@ One commit and one green CI run per step; v1.0.0 after step 6.
 5. `QuarantineLedger`, `flake quarantine` and `flake gate`. **Done.**
 6. Markdown and HTML report. **Done.** Release v1.0.0.
 7. `flake-github` ingest from Actions artifacts. **Done.**
-8. `flake-junit` extension.
+8. `flake-junit` extension. **Done.**
 9. PR comment and issue sync.
 10. GitHub Action (TypeScript) with conformance tests.
 11. Dogfood the action in this repo's CI.

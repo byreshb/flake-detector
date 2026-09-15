@@ -26,5 +26,11 @@
       <artifactId>junit-jupiter-api</artifactId>
       <scope>provided</scope>
     </dependency>
+    <!-- Runs real, nested test classes through the extension in tests; see QuarantineExtensionTest. -->
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-testkit</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

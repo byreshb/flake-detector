@@ -7,6 +7,11 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- `flake-junit`: `QuarantineExtension`, a JUnit 5 extension that fails a class immediately when
+  one of its quarantine entries has expired, disables quarantined tests under
+  `-Dflake.quarantine=skip`, and otherwise (the default) runs them but catches a failure and
+  records the real outcome to a separate, `flake ingest`-able JUnit XML report instead of failing
+  the build.
 - `flake-github`: `GitHubClient`, a minimal `java.net.http` REST client with no JSON dependency,
   and `GitHubArtifactsSource`, which lists a workflow's runs, downloads matching artifacts and
   feeds their reports to `JUnitXmlParser`. The `flake ingest github` command.

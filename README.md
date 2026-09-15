@@ -316,6 +316,65 @@ not JUnit reports are skipped rather than failing the read. Downloading an artif
 requires a token: GitHub's artifact endpoint answers with a redirect to a short-lived, signed URL,
 which `GitHubClient` follows once without forwarding the token to it.
 
+### Enforcing quarantine at test time
+
+`flake-junit`'s `QuarantineExtension` reads the same ledger the CLI does and acts on it while your
+suite runs, so a quarantined test does not need to be commented out or annotated by hand:
+
+```xml
+<dependency>
+  <groupId>io.github.byreshb</groupId>
+  <artifactId>flake-junit</artifactId>
+  <version>1.0.1-SNAPSHOT</version>
+  <scope>test</scope>
+</dependency>
+```
+
+```java
+@ExtendWith(QuarantineExtension.class)
+class CheckoutTest {
+  @Test
+  void appliesCoupon() { /* ... */ }
+}
+```
+
+By default (`observe` mode) a quarantined test still runs; if it fails, the failure is caught
+rather than allowed to fail the build, and its real outcome is written to a separate JUnit XML
+report under `.flake/observed/`, ready to `flake ingest` exactly like a Surefire report. Pass
+`-Dflake.quarantine=skip` to disable quarantined tests instead of running them. Either way, a test
+whose quarantine entry has **expired** fails its whole class immediately, with a message naming
+every expired entry, regardless of the mode — an expired quarantine is never silently honoured.
+
+| System property        | Default                | What it controls                                   |
+|-------------------------|-------------------------|-----------------------------------------------------|
+| `flake.quarantine`      | `observe`               | `skip` disables quarantined tests instead.          |
+| `flake.ledger`          | `.flake/quarantine.yaml`| Ledger location.                                    |
+| `flake.observed.dir`    | `.flake/observed`       | Where observe-mode reports are written.             |
+
+Only plain `@Test` methods are intercepted in observe mode; a failing quarantined
+`@ParameterizedTest` still fails the build. `@Nested` classes are treated as their own class.
+
+### Reading from GitHub Actions
+
+`GitHubClient` (in `flake-github`) is a thin `java.net.http` wrapper: no JSON library, no other
+dependency. `GitHubArtifactsSource` implements the same `RunSource` interface as
+`LocalDirectorySource`, so it drops into the same pipeline:
+
+```java
+GitHubClient client = GitHubClient.create(System.getenv("GITHUB_TOKEN"));
+RunSource source = new GitHubArtifactsSource(client, "byreshb", "flake-detector", "ci.yml", 100);
+try (RunStore store = SqliteRunStore.open(SqliteRunStore.DEFAULT_PATH)) {
+  store.record(source.read());
+}
+```
+
+It lists the workflow's runs (paging until it has enough or the API runs out), downloads every
+artifact whose name matches a glob (default `*{surefire,failsafe}*`), unzips each in memory, and
+parses every `.xml` entry with the same `JUnitXmlParser` a local directory uses; entries that are
+not JUnit reports are skipped rather than failing the read. Downloading an artifact always
+requires a token: GitHub's artifact endpoint answers with a redirect to a short-lived, signed URL,
+which `GitHubClient` follows once without forwarding the token to it.
+
 Failure messages are never stored as text. Each failed execution carries a 64-bit hash of the
 message after normalisation (exception type prefixed, whitespace collapsed, every run of digits
 replaced by `#`), which is enough to tell "the same assertion keeps failing" from "it fails
