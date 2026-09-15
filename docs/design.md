@@ -95,6 +95,17 @@ current run's data into history is a distinct, explicit step (`flake ingest`) so
 gated but never ingested cannot silently corrupt the evidence used to gate the next one. See
 [docs/quarantine.md](quarantine.md) and [docs/ci-integration.md](ci-integration.md).
 
+## Reports
+
+`ReportEntry` pairs a `FlakeScore` with a capped, chronological trend of outcomes; `Reports.build`
+is the only place that turns a `RunStore` into report input, so `MarkdownReport` and `HtmlReport`
+are pure functions of `List<ReportEntry>` and cannot disagree about what a test's history was.
+`HtmlReport` writes a single file by hand (no templating engine, no external CSS or JS) so the
+output has no build-time or runtime dependency beyond the JVM producing it, and can be opened or
+attached to a CI run without a web server. Trend characters (`.`/`F`/`E`) and sparkline colors are
+shared knowledge between the two renderers only by convention, not by a common type, which is a
+small duplication accepted for keeping each renderer simple and self-contained.
+
 ## Deliberate trade-offs
 
 - **No machine learning.** The signals that matter (a failure that passes on re-run of the same
@@ -117,7 +128,7 @@ One commit and one green CI run per step; v1.0.0 after step 6.
 3. `SqliteRunStore` with migrations and `LocalDirectorySource`; `flake ingest <dir>`. **Done.**
 4. `FlakinessScorer` with `docs/scoring.md`; `flake score`. **Done.**
 5. `QuarantineLedger`, `flake quarantine` and `flake gate`. **Done.**
-6. Markdown and HTML report. Release v1.0.0.
+6. Markdown and HTML report. **Done.** Release v1.0.0.
 7. `flake-github` ingest from Actions artifacts.
 8. `flake-junit` extension.
 9. PR comment and issue sync.

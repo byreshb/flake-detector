@@ -98,10 +98,10 @@ flake score --top 20 --format md
 ```
 
 ```
-| # | Test | Score | Runs | Failures | Recovered | Flips | Messages |
-|--:|------|------:|-----:|---------:|----------:|------:|---------:|
-| 1 | `com.acme.CheckoutTest#appliesCoupon` | 0.383 | 16 | 6 | 4 | 5/6 | 3 |
-| 2 | `com.acme.CheckoutTest#loadsInventory` | 0.112 | 4 | 4 | 0 | 0/0 | 3 |
+| # | Test | Score | Runs | Failures | Recovered | Flips | Messages | Trend |
+|--:|------|------:|-----:|---------:|----------:|------:|---------:|-------|
+| 1 | `com.acme.CheckoutTest#appliesCoupon` | 0.383 | 16 | 6 | 4 | 5/6 | 3 | `.F.F.F.F...` |
+| 2 | `com.acme.CheckoutTest#loadsInventory` | 0.112 | 4 | 4 | 0 | 0/0 | 3 | `EEEE` |
 
 com.acme.CheckoutTest#appliesCoupon: score 0.383 over 16 run(s)
   rerun recovery   0.300 x 0.5 = 0.150  (4 of 6 failure(s) passed on a retry of the same commit; rate 0.67, 95% interval [0.30, 0.90])
@@ -115,7 +115,14 @@ commit** so that real fixes and regressions do not count: failures that passed o
 0.5), consecutive runs that changed outcome (0.3), and how many different failure messages the
 test produces (0.2). Rates enter the score as the lower bound of a 95% Wilson interval, so one
 lucky rerun does not outrank three hundred. A test that always fails scores 0: that is a bug, not
-flakiness. Every formula, with a worked example, is in [docs/scoring.md](docs/scoring.md).
+flakiness. Every formula, with a worked example, is in [docs/scoring.md](docs/scoring.md). The
+`Trend` column is one character per run, oldest first (`.` pass, `F` fail, `E` error);
+`--format html` draws the same trend as a small inline SVG bar chart next to a ranked table and
+the same explanations, in one self-contained file:
+
+```bash
+flake score --format html > report.html
+```
 
 When a test is worth taking out of the way, quarantine it with an owner, a reason and an expiry
 of at most 90 days:
@@ -157,7 +164,7 @@ flake issues sync
 | Command                       | What it does                                                              |
 |--------------------------------|----------------------------------------------------------------------------|
 | `flake ingest <dir>`           | Read `TEST-*.xml` under `<dir>` (recursively) into the run history.        |
-| `flake score`                  | Rank tests by flakiness: `--top N` (20; 0 for all), `--format md\|json`, `--explain N` (3). |
+| `flake score`                  | Rank tests by flakiness: `--top N` (20; 0 for all), `--format md\|html\|json`, `--explain N` (3). |
 | `flake quarantine add <test>`  | Add or replace an entry: `--reason`, `--owner`, `--expires` (required), `--added` (today), `--issue`. |
 | `flake quarantine remove <test>` | Remove an entry.                                                          |
 | `flake quarantine list`        | List entries as a Markdown table; `--expired-only` to filter.              |
@@ -235,6 +242,25 @@ try (RunStore store = SqliteRunStore.open(SqliteRunStore.DEFAULT_PATH)) {
 The formulas are fixed by [`conformance/scoring.json`](conformance/scoring.json), a set of run
 histories with their expected components; the Java scorer is tested against it and the TypeScript
 scorer in the GitHub Action will be too.
+
+### Reports
+
+`Reports.build(store, scorer, trendPoints)` scores every test and attaches its recent trend (the
+last `trendPoints` non-skipped outcomes, oldest first) as a `ReportEntry`; `MarkdownReport` and
+`HtmlReport` both render a `List<ReportEntry>` so the two formats can never drift out of sync with
+each other or with the scorer:
+
+```java
+try (RunStore store = SqliteRunStore.open(SqliteRunStore.DEFAULT_PATH)) {
+  List<ReportEntry> entries = Reports.build(store, new FlakinessScorer(), Reports.DEFAULT_TREND_POINTS);
+  Files.writeString(Path.of("report.html"), HtmlReport.render("Flake score", entries, 5));
+}
+```
+
+`HtmlReport` produces one self-contained file: inline CSS, no external resources, safe to attach
+to a CI run as an artifact or check into the repository. Each row's trend is a small inline SVG
+bar chart: a short green bar for a pass, a tall red bar for a failure, a tall maroon bar for an
+error.
 
 ### The quarantine ledger
 

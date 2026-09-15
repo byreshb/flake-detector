@@ -1,11 +1,13 @@
 package io.github.byreshb.flake.cli;
 
-import io.github.byreshb.flake.score.FlakeScore;
+import io.github.byreshb.flake.report.HtmlReport;
+import io.github.byreshb.flake.report.MarkdownReport;
+import io.github.byreshb.flake.report.ReportEntry;
+import io.github.byreshb.flake.report.Reports;
 import io.github.byreshb.flake.score.FlakinessScorer;
 import io.github.byreshb.flake.store.SqliteRunStore;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -22,8 +24,10 @@ public final class ScoreCommand implements Callable<Integer> {
 
   /** Output formats. */
   public enum Format {
-    /** A Markdown table followed by explanations of the top suspects. */
+    /** A Markdown table with a trend column, followed by explanations of the top suspects. */
     MD,
+    /** A single self-contained HTML file with the same table, an inline SVG trend and suspects. */
+    HTML,
     /** A JSON array with every component of every score. */
     JSON
   }
@@ -47,7 +51,8 @@ public final class ScoreCommand implements Callable<Integer> {
       paramLabel = "N",
       defaultValue = "3",
       description =
-          "How many of the top tests to explain in Markdown output (default: ${DEFAULT-VALUE}).")
+          "How many of the top tests to explain in Markdown or HTML output (default:"
+              + " ${DEFAULT-VALUE}).")
   private int explain;
 
   @Mixin private StoreOptions store;
@@ -56,52 +61,27 @@ public final class ScoreCommand implements Callable<Integer> {
 
   @Override
   public Integer call() {
-    List<FlakeScore> scores;
+    List<ReportEntry> entries;
     try (SqliteRunStore db = store.open()) {
-      scores = new FlakinessScorer().scoreAll(db);
+      entries = Reports.build(db, new FlakinessScorer(), Reports.DEFAULT_TREND_POINTS);
     }
-    if (top > 0 && scores.size() > top) {
-      scores = scores.subList(0, top);
+    if (top > 0 && entries.size() > top) {
+      entries = entries.subList(0, top);
     }
     PrintWriter out = spec.commandLine().getOut();
     switch (format) {
-      case JSON -> out.print(ScoreJson.render(scores));
-      case MD -> out.print(markdown(scores));
+      case JSON -> out.print(ScoreJson.render(entries.stream().map(ReportEntry::score).toList()));
+      case HTML -> out.print(HtmlReport.render("Flake score", entries, explain));
+      case MD -> out.print(markdown(entries));
     }
     out.flush();
     return 0;
   }
 
-  private String markdown(List<FlakeScore> scores) {
-    StringBuilder md = new StringBuilder();
-    md.append("| # | Test | Score | Runs | Failures | Recovered | Flips | Messages |\n");
-    md.append("|--:|------|------:|-----:|---------:|----------:|------:|---------:|\n");
-    int rank = 1;
-    for (FlakeScore s : scores) {
-      md.append(
-          String.format(
-              Locale.ROOT,
-              "| %d | `%s` | %.3f | %d | %d | %d | %d/%d | %d |%n",
-              rank++,
-              s.testId(),
-              s.score(),
-              s.runs(),
-              s.failures(),
-              s.recoveredFailures(),
-              s.flips(),
-              s.flipPairs(),
-              s.distinctMessages()));
+  private String markdown(List<ReportEntry> entries) {
+    if (entries.isEmpty()) {
+      return "No runs in the history yet; run `flake ingest` first.\n";
     }
-    if (scores.isEmpty()) {
-      md.append("\nNo runs in the history yet; run `flake ingest` first.\n");
-    }
-    int explained = 0;
-    for (FlakeScore s : scores) {
-      if (explained++ >= explain || s.score() == 0) {
-        break;
-      }
-      md.append('\n').append(s.explain());
-    }
-    return md.toString();
+    return MarkdownReport.render(entries, explain);
   }
 }

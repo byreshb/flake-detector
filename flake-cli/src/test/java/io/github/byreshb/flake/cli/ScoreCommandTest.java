@@ -66,6 +66,22 @@ class ScoreCommandTest {
   }
 
   @Test
+  void htmlIsASelfContainedReportWithATrendAndSuspects() {
+    CliTestSupport cli = new CliTestSupport();
+
+    int status = cli.run("score", "--db", db, "--format", "html", "--top", "0");
+
+    assertThat(status).isZero();
+    String out = cli.out.toString();
+    assertThat(out).startsWith("<!doctype html>\n<html lang=\"en\">");
+    assertThat(out).contains("<title>Flake score</title>");
+    assertThat(out).contains("<code>com.acme.CheckoutTest#appliesCoupon</code>");
+    assertThat(out).contains("<svg class=\"spark\"");
+    assertThat(out).contains("<h2>Top suspects</h2>");
+    assertThat(out).contains("<pre>com.acme.CheckoutTest#appliesCoupon: score 0.");
+  }
+
+  @Test
   void jsonListsEveryComponent() {
     CliTestSupport cli = new CliTestSupport();
 

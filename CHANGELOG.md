@@ -7,6 +7,9 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- `Reports`, `MarkdownReport` and `HtmlReport`: a ranked table with a per-test trend, plus
+  explanations of the top suspects, in Markdown or as one self-contained HTML file with the trend
+  drawn as an inline SVG bar chart. `flake score --format html`.
 - `QuarantineLedger` (`.flake/quarantine.yaml`, entries capped at a 90-day expiry) and the
   `flake quarantine add|remove|list|check` commands. `flake gate`, which reads the current
   build's reports and exits non-zero only for a failure that is neither quarantined (and
