@@ -71,7 +71,7 @@ class FlakinessScorerTest {
     assertThat(score.flips()).isEqualTo(3);
     assertThat(score.rerunRecoveryRate()).isEqualTo(1.0);
     assertThat(score.rerunRecoveryInterval().lower()).isCloseTo(0.4385, within(1e-3));
-    assertThat(score.entropy()).isEqualTo(1.0);
+    assertThat(score.entropy()).isCloseTo(1.0, within(1e-9));
     assertThat(score.entropyComponent()).isCloseTo(2.0 / 3, within(1e-9));
     assertThat(score.weights()).isEqualTo(Weights.DEFAULT);
   }
