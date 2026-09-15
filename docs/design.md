@@ -76,6 +76,25 @@ order: explicit option, GitHub Actions environment (`GITHUB_SHA`, `GITHUB_REF_NA
 the working directory, and finally a default (`unknown` commit, a timestamp-based build id,
 attempt 1, empty branch and runner). Other CI systems work through the explicit options.
 
+## Quarantine and the gate
+
+`QuarantineLedger` is an immutable value; `add`, `remove`, `find`, `isQuarantined` and `expired`
+all return new state or answer a question, never mutate in place, so a ledger can be built up
+programmatically (as `flake quarantine add` does) without any risk of a half-written file.
+`QuarantineEntry`'s constructor is where the 90-day cap is enforced, so it holds regardless of
+whether the entry came from a command or from loading a hand-edited YAML file. The YAML is written
+by hand-rolled, minimal formatting rather than a general emitter, so the file `flake quarantine
+add` produces is stable and diff-friendly across snakeyaml versions; parsing still goes through
+snakeyaml's `SafeConstructor` so arbitrary YAML tags cannot instantiate arbitrary classes.
+
+`flake gate` deliberately does not ingest: it reads the *current* build's reports directly with
+`JUnitXmlParser` (bypassing the run store) to find this run's failures, and separately reads the
+run store to score each one against history. This keeps "did this run fail" (the reports) and
+"is this test known to be flaky" (the store) as two clearly separate questions; ingesting the
+current run's data into history is a distinct, explicit step (`flake ingest`) so a build that is
+gated but never ingested cannot silently corrupt the evidence used to gate the next one. See
+[docs/quarantine.md](quarantine.md) and [docs/ci-integration.md](ci-integration.md).
+
 ## Deliberate trade-offs
 
 - **No machine learning.** The signals that matter (a failure that passes on re-run of the same
@@ -97,7 +116,7 @@ One commit and one green CI run per step; v1.0.0 after step 6.
 2. Model and `JUnitXmlParser` with fixtures covering Surefire 3 reruns. **Done.**
 3. `SqliteRunStore` with migrations and `LocalDirectorySource`; `flake ingest <dir>`. **Done.**
 4. `FlakinessScorer` with `docs/scoring.md`; `flake score`. **Done.**
-5. `QuarantineLedger`, `flake quarantine` and `flake gate`.
+5. `QuarantineLedger`, `flake quarantine` and `flake gate`. **Done.**
 6. Markdown and HTML report. Release v1.0.0.
 7. `flake-github` ingest from Actions artifacts.
 8. `flake-junit` extension.

@@ -9,7 +9,12 @@ import picocli.CommandLine.Command;
     mixinStandardHelpOptions = true,
     versionProvider = FlakeCommand.Version.class,
     description = "Statistical flaky-test detection and quarantine for JUnit and Maven projects.",
-    subcommands = {IngestCommand.class, ScoreCommand.class})
+    subcommands = {
+      IngestCommand.class,
+      ScoreCommand.class,
+      QuarantineCommand.class,
+      GateCommand.class
+    })
 public final class FlakeCommand {
 
   /**

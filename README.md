@@ -117,23 +117,55 @@ test produces (0.2). Rates enter the score as the lower bound of a 95% Wilson in
 lucky rerun does not outrank three hundred. A test that always fails scores 0: that is a bug, not
 flakiness. Every formula, with a worked example, is in [docs/scoring.md](docs/scoring.md).
 
+When a test is worth taking out of the way, quarantine it with an owner, a reason and an expiry
+of at most 90 days:
+
+```bash
+flake quarantine add com.acme.CheckoutTest#appliesCoupon \
+  --reason "timing on CI" --owner byresh --expires 2026-12-01
+```
+
+Then gate the build on the reports of the current run: it fails only for a failure that is
+neither quarantined nor already known to be flaky, and prints its reasoning either way.
+
+```bash
+flake gate --reports target/surefire-reports
+```
+
+```
+SKIP  com.acme.CheckoutTest#appliesCoupon: quarantined by byresh until 2026-12-01 (timing on CI)
+FAIL  com.acme.CheckoutTest#chargesTax: not quarantined, flakiness score 0.050 <= threshold 0.300
+
+2 failure(s), 1 excused, 1 must be fixed.
+```
+
+Run `flake quarantine check` as a separate CI step so an expired entry fails the build even on a
+day when nothing else does. See [docs/quarantine.md](docs/quarantine.md) for the ledger format
+and policy, and [docs/ci-integration.md](docs/ci-integration.md) for a full GitHub Actions
+workflow wiring `ingest`, `gate` and `quarantine check` together.
+
 The shape of the rest of the tool as the plan lands:
 
 ```bash
 flake ingest github --repo byreshb/playwright-pagefactory --workflow CI --runs 200
-flake score --top 20 --format md
-flake quarantine add com.acme.CheckoutTest#appliesCoupon --reason "timing on CI" --owner byresh --expires 2026-12-01
-flake gate --reports target/surefire-reports
+flake pr-comment
+flake issues sync
 ```
 
 ### Command reference
 
-| Command                    | What it does                                                         |
-|----------------------------|----------------------------------------------------------------------|
-| `flake ingest <dir>`       | Read `TEST-*.xml` under `<dir>` (recursively) into the run history.  |
-| `flake score`              | Rank tests by flakiness: `--top N` (20; 0 for all), `--format md|json`, `--explain N` (3). |
+| Command                       | What it does                                                              |
+|--------------------------------|----------------------------------------------------------------------------|
+| `flake ingest <dir>`           | Read `TEST-*.xml` under `<dir>` (recursively) into the run history.        |
+| `flake score`                  | Rank tests by flakiness: `--top N` (20; 0 for all), `--format md\|json`, `--explain N` (3). |
+| `flake quarantine add <test>`  | Add or replace an entry: `--reason`, `--owner`, `--expires` (required), `--added` (today), `--issue`. |
+| `flake quarantine remove <test>` | Remove an entry.                                                          |
+| `flake quarantine list`        | List entries as a Markdown table; `--expired-only` to filter.              |
+| `flake quarantine check`       | Exit non-zero and list every expired entry.                                |
+| `flake gate`                   | Exit non-zero only for unexcused failures: `--reports DIR` (required), `--glob`, `--threshold` (0.3). |
 
-Options shared by every command: `--db FILE` (default `.flake/history.db`). Options of `ingest`:
+Options shared by every command: `--db FILE` (default `.flake/history.db`). `quarantine` and
+`gate` also take `--ledger FILE` (default `.flake/quarantine.yaml`). Options of `ingest`:
 `--glob`, `--commit`, `--branch`, `--runner`, `--build-id`, `--attempt`.
 
 `--format json` prints an array with one object per test holding every component: `test`,
@@ -203,6 +235,24 @@ try (RunStore store = SqliteRunStore.open(SqliteRunStore.DEFAULT_PATH)) {
 The formulas are fixed by [`conformance/scoring.json`](conformance/scoring.json), a set of run
 histories with their expected components; the Java scorer is tested against it and the TypeScript
 scorer in the GitHub Action will be too.
+
+### The quarantine ledger
+
+`QuarantineLedger` reads and writes `.flake/quarantine.yaml`, an immutable value with `add`,
+`remove`, `find`, `isQuarantined` and `expired`. Building a `QuarantineEntry` with an expiry more
+than 90 days after it was added throws, whether the entry comes from `flake quarantine add` or
+from loading a hand-edited file:
+
+```java
+QuarantineLedger ledger = QuarantineLedger.load(QuarantineLedger.DEFAULT_PATH);
+QuarantineEntry entry = new QuarantineEntry(
+    TestId.parse("com.acme.CheckoutTest#appliesCoupon"), "timing on CI", "byresh",
+    LocalDate.now(), LocalDate.now().plusDays(30), null);
+ledger.add(entry).save(QuarantineLedger.DEFAULT_PATH);
+```
+
+See [docs/quarantine.md](docs/quarantine.md) for the file format and the policy behind the
+expiry.
 
 Failure messages are never stored as text. Each failed execution carries a 64-bit hash of the
 message after normalisation (exception type prefixed, whitespace collapsed, every run of digits

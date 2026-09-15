@@ -7,6 +7,11 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- `QuarantineLedger` (`.flake/quarantine.yaml`, entries capped at a 90-day expiry) and the
+  `flake quarantine add|remove|list|check` commands. `flake gate`, which reads the current
+  build's reports and exits non-zero only for a failure that is neither quarantined (and
+  unexpired) nor above the flakiness threshold, printing its reasoning for every failure.
+  `docs/quarantine.md` and `docs/ci-integration.md` document the ledger and a full workflow.
 - `FlakinessScorer`: rerun-recovery rate, flip rate and failure-message entropy combined into a
   0-1 score with Wilson intervals and an `explain()`; runner and hour-of-day correlations
   (Cramér's V) reported alongside. Formulas in `docs/scoring.md`, fixtures in
